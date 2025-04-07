@@ -12,7 +12,7 @@ format:
     theme: darkly
 ---
 
-> ‼️ **4,337 deadly events. 75+ countries. One goal: protect those who protect others.**
+> ‼️ **4,337 deadly events. 75+ countries. One goal: protect those who protect others.** @gpt4o
 
 ![Global Humanitarian Threat Network](images/intelligence.jpg)
 
