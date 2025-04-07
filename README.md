@@ -1,4 +1,4 @@
-# jl3205-dataviz-scholarship-2025
+# Fatal Compassion: Mapping the Deadliest Zones for Aid Workers
 
 ![Global Humanitarian Threat Network](images/intelligence.jpg)
 
