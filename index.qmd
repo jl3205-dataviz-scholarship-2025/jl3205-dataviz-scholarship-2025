@@ -1,0 +1,23 @@
+---
+title: "Fatal Compassion: Mapping the Deadliest Zones for Aid Workers"
+author: "jl3205"
+subtitle: "DSAN Scholarship Competition 2025: Data Visualization Project"
+date: "2025-03-24"
+abstract: "[...]"
+format: 
+  html: 
+    embed-resources: true
+    toc: true
+    code-fold: true
+    theme: darkly
+---
+
+> ‼️ **4,337 deadly events. 75+ countries. One goal: protect those who protect others.**
+
+![Global Humanitarian Threat Network](images/intelligence.jpg)
+
+Across some of the world's most fragile regions, humanitarian aid workers — from 1997 to the present — have faced an escalating spectrum of violent threats, ranging from ambushes to abductions. This project transforms raw incident records into a threat - informed intelligence layer to support operational decision - making.
+
+By analyzing thousands of recorded attacks on UN agencies, international NGOs, and Red Cross affiliates, I uncovered patterns in **time**, **geography**, and **modus operandi**. This allows us to identify not only where humanitarian work is most dangerous, but also trace how threat environments shift over time.
+
+The approach is inspired by **real-time situational awareness** platforms commonly used in defense and security contexts @kurpiewska2024digital. Just as Palantir empowers decision - makers in conflict zones, this project aims to do the same for humanitarian stakeholders — equipping them with **foresight, not just hindsight** @martin2023aidwashing.

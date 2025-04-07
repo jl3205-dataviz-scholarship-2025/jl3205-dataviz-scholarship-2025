@@ -1,0 +1,54 @@
+/* css styles */
+
+/* Typography and tone */
+body {
+  font-family: 'Roboto Mono', monospace;
+  line-height: 1.6;
+}
+
+/* Hyperlink styling */
+a {
+  color: #00b3e6;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #ff4081;
+  text-decoration: underline;
+}
+
+/* Navbar polish */
+.navbar {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Code styling */
+pre, code {
+  font-family: 'Fira Code', monospace;
+  background-color: rgba(40, 44, 52, 0.85); /* Looks good in both modes */
+  color: #f8f8f2;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+/* Table styling */
+.table {
+  font-size: 0.95rem;
+  border-collapse: collapse;
+}
+
+.table th {
+  border-bottom: 2px solid #00b3e6;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 179, 230, 0.05); /* subtle even in light mode */
+}
+
+/* Headers with subtle underlines */
+h1, h2, h3 {
+  border-bottom: 2px solid #00b3e6;
+  padding-bottom: 0.3rem;
+  margin-bottom: 1rem;
+}

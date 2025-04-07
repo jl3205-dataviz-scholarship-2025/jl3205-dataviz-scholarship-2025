@@ -1,0 +1,53 @@
+---
+title: Data Integrity & Readiness
+author: "jl3205"
+format: 
+  html: 
+    embed-resources: true
+    toc: true
+    code-fold: true
+    theme: darkly
+---
+
+Before diving into the story behind the dataset, I want to highlight the key data - cleaning steps I took:
+
+1. **Missing categorical values**: Several important categorical columns — such as Country Code, Country, Region, District, City, Sector Name, Motive, and Verified — contained missing values. I replaced these with the placeholder "Unknown" to ensure consistent grouping and filtering in visualizations.
+
+2. **Numeric date fields**: For the Month and Day columns, missing values were filled using the median of each column. These values were then converted from float to integer to maintain proper formatting. This approach preserves the utility of the data for temporal analysis without distorting the timeline.
+
+3. **Organizational count columns**: Columns representing organizational involvement (ICRC, NRCS, IFRC, NNGO) had missing values, which I assumed indicated no involvement. These were replaced with zeros and converted to integers for accurate quantitative analysis.
+
+4. **Geolocation data**: I removed 13 rows that lacked both latitude and longitude, as geographic coordinates are essential for spatial analysis. Without valid location data, these entries could not contribute meaningfully to geospatial insights. As a result, the dataset was reduced from 4,337 to 4,324 entries.
+
+> The tables below summarize the impact of the cleaning process, including missing-value resolution and row-level filtering based on spatial validity criteria.
+
+```{r}
+suppressMessages(library(tidyverse))
+
+raw_df <- read_csv("raw_data/security_incidents.csv", show_col_types = FALSE)
+clean_df <- read_csv("clean_data/security_incidents_cleaned.csv", show_col_types = FALSE)
+
+missing_compare <- tibble(
+    Column = names(raw_df),
+    Raw_Missing = sapply(raw_df, function(x) sum(is.na(x))),
+    Cleaned_Missing = sapply(clean_df, function(x) sum(is.na(x)))
+) |>
+    mutate(
+        Missing_Reduced = Raw_Missing - Cleaned_Missing
+    )
+
+missing_compare |>
+    arrange(desc(Missing_Reduced)) |>
+    print(n = 20)
+```
+
+> **Table**: Comparison of missing values before and after cleaning.
+
+```{r}
+tibble(
+    Raw_Rows = nrow(raw_df),
+    Cleaned_Rows = nrow(clean_df),
+    Rows_Removed = nrow(raw_df) - nrow(clean_df)
+)
+```
+> **Table**: Summary of row reduction after cleaning

@@ -1,0 +1,87 @@
+---
+title: Scope, Signals & Limitations
+author: "jl3205"
+format: 
+  html: 
+    embed-resources: true
+    toc: true
+    code-fold: true
+    theme: darkly
+---
+
+The dataset contains **4,337 recorded incidents**, each representing a confirmed attack against humanitarian operations between **1997 and 2025**. Structured at the **event level**, these records document **operational disruptions** — not individuals or fixed locations. As such, the data is best understood as a **chronicle of threat encounters**, not a risk likelihood model.
+
+Certain fields — such as victim counts and agency involvement — offer strong fidelity, thanks to uniforms and ICRC - compliant markings. These details enable reliable quantification of **affected nationals vs. internationals** and **targeted organizations** such as the **UN**, **INGOs**, and **Red Cross affiliates**.
+
+However, critical intelligence gaps persist. Variables like *actor name*, *motive*, and *means of attack* are frequently marked as "Unknown." This reflects a practical reality: in high - risk environments, **immediate triage and rescue take precedence over detailed record-keeping**, often resulting in delayed or degraded data collection.
+
+From an analytical standpoint, these incidents should ideally be contextualized against **baseline rates** — such as the number of deployed personnel, mission types, or vehicle movements in each region. While unavailable in this dataset, such baseline indicators remain a critical frontier for future humanitarian intelligence systems.
+
+
+```{r, warning=FALSE}
+suppressMessages(library(tidyverse))
+suppressMessages(library(plotly))
+
+df <- read_csv("clean_data/security_incidents_cleaned.csv", show_col_types = FALSE)
+
+incidents_per_year <- df |>
+  count(Year) |>
+  arrange(Year)
+
+top_spikes <- incidents_per_year |>
+  slice_max(n, n = 3)
+
+incidents_per_year <- incidents_per_year |>
+  mutate(
+    Category = if_else(Year %in% top_spikes$Year, "Spike", "Trend"),
+    IsPartial = if_else(Year == 2025, TRUE, FALSE)
+  )
+
+current_theme <- knitr::opts_knit$get("quarto.theme") %||% "light"
+
+dark_colors <- c("Spike" = "#FF5C5C", "Trend" = "#4EA8DE", "Partial" = "#999999")
+light_colors <- c("Spike" = "#D62828", "Trend" = "#1D3557", "Partial" = "#AAAAAA")
+
+colors <- if (grepl("dark", current_theme, ignore.case = TRUE)) dark_colors else light_colors
+
+p <- ggplot(incidents_per_year, aes(x = Year, y = n)) +
+  geom_line(color = colors["Trend"], linewidth = 1.2) +
+  geom_point(
+    aes(
+      color = case_when(
+        IsPartial ~ "Partial",
+        Category == "Spike" ~ "Spike",
+        TRUE ~ "Trend"
+      ),
+      text = if_else(IsPartial,
+                     paste0("Year: ", Year, "<br>Incidents: ", n, " (Partial Year)"),
+                     paste0("Year: ", Year, "<br>Incidents: ", n))
+    ),
+    size = 3
+  ) +
+  scale_color_manual(values = colors) +
+  labs(
+    title = "Security Incident Timeline (1997–2025)",
+    subtitle = "Tracking the rise and surges in global attacks on aid workers",
+    x = "Year",
+    y = "Reported Incidents",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(
+    plot.title = element_text(face = "bold", size = 13),
+    plot.subtitle = element_text(size = 10),
+    legend.position = "top"
+  )
+
+timeline <- ggplotly(p, tooltip = "text") |>
+  layout(
+    margin = list(t = 90),
+    legend = list(orientation = "h", x = 0.4, y = 1.1, font = list(size = 9)),
+    xaxis = list(titlefont = list(size = 10)),
+    yaxis = list(titlefont = list(size = 10))
+  )
+
+timeline
+```
+> **Figure 1:** Confirmed incidents involving aid worker harm, year. Data for 2025 is partial.

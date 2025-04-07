@@ -1,0 +1,35 @@
+project:
+  type: website
+  output-dir: ../docs
+
+website:
+  title: "Scholarship Project"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Mission Brief
+      - href: about.qmd
+        text: Threat Dataset
+      - href: tidy.qmd
+        text: Preprocessing Protocol
+      - href: visuals.qmd
+        text: Field Intelligence (EDA)
+      - href: analysis.qmd
+        text: Strategic Analysis
+      - href: future.qmd
+        text: Forward Outlook
+
+format:
+  html:
+    bibliography: references.bib
+    csl: nature.csl
+    theme:
+      light: flatly
+      dark: darkly
+    toggle-theme: true
+    css: styles.css
+    toc: true
+    google-fonts: ["Roboto Mono"]
+
+
+

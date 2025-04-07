@@ -1,0 +1,238 @@
+---
+title: Field Intelligence Patterns
+author: "jl3205"
+format: 
+  html: 
+    embed-resources: true
+    toc: true
+    code-fold: true
+    theme: darkly
+---
+
+In this section, I examine the dataset through the lens of tactical intelligence — uncovering patterns across **time**, **geography**, **organizational presence**, **types of violence**, and **perpetrator characteristics**. Each visualization contributes to constructing a clearer picture of the **risk environment** faced by humanitarian actors in volatile regions.
+
+*This EDA lays the groundwork for more advanced operational analysis — including anomaly detection, actor - motive clustering, and region - specific risk modeling.*
+
+## Incident Hotspots by Geography
+> How have incident locations shifted — and where do they concentrate most?
+ 
+```{r, warning=FALSE}
+suppressMessages(library(tidyverse))
+suppressMessages(library(plotly))
+
+df <- read_csv("clean_data/security_incidents_cleaned.csv", show_col_types = FALSE)
+
+df_map <- df |> 
+  filter(!is.na(Latitude), !is.na(Longitude)) |> 
+  select(Year, Country, Latitude, Longitude, `Total affected`)
+
+plot_geo(df_map) |>
+  add_markers(
+    x = ~Longitude, y = ~Latitude,
+    frame = ~Year,
+    size = ~`Total affected`,
+    hoverinfo = "text",
+    text = ~paste("Year:", Year, "<br>Country:", Country, "<br>Total affected:", `Total affected`),
+    marker = list(color = 'red', opacity = 0.6, line = list(width = 0)),
+    name = "Confirmed Incident Location"
+  ) |>
+  layout(
+    margin = list(t = 90),
+    title = "Evolving Threat Landscape: Aid Worker Attacks (1997–2025)",
+    geo = list(
+      projection = list(type = "natural earth"),
+      showland = TRUE,
+      landcolor = "gray10",
+      countrycolor = "gray50",
+      bgcolor = "#1e1e1e"
+    ),
+    paper_bgcolor = "#1e1e1e",
+    plot_bgcolor = "#1e1e1e",
+    font = list(color = "#FFFFFF"),
+    legend = list(
+    x = 0.9, 
+    y = 0.9,
+    font = list(size = 10)
+  )
+  )
+```
+> **Figure 2:** Animated progression of aid worker attacks from 1997 to 2025, revealing the volatility and shifting epicenters of operational risk across time.
+
+```{r, warning=FALSE}
+plot_geo(df_map) |>
+  add_markers(
+    x = ~Longitude, y = ~Latitude,
+    size = ~`Total affected`,
+    hoverinfo = "text",
+    text = ~paste("Country:", Country, "<br>Total affected:", `Total affected`),
+    marker = list(color = 'red', opacity = 0.5, line = list(width = 0))
+  ) |>
+  layout(
+    margin = list(t = 90),
+    title = "Cumulative Footprint of Aid Worker Attacks (1997–2025)",
+    geo = list(
+      projection = list(type = "natural earth"),
+      showland = TRUE,
+      landcolor = "gray10",
+      countrycolor = "gray50",
+      bgcolor = "#1e1e1e"
+    ),
+    paper_bgcolor = "#1e1e1e",
+    plot_bgcolor = "#1e1e1e",
+    font = list(color = "#FFFFFF"),
+    showlegend = FALSE
+  )
+```
+> **Figure 3:** High - density clusters in East Africa, South Asia, and the Sahel highlight persistent operational vulnerabilities — pinpointing regions where threat exposure is entrenched over time.
+
+::: {.callout-note title="Insight: Urban-Rural Divide"}
+Preliminary geospatial inspection suggests clustering in both urban flashpoints (e.g., Mogadishu, Kabul) and rural corridors (e.g., Sahelian belt), accentuating the challenge of one-size-fits-all security policies.
+:::
+
+
+## Organizational Risk Exposure
+> Which agencies are most frequently involved in attacks?
+
+```{r, warning=FALSE}
+suppressMessages(library(plotly))
+
+org_totals <- df |>
+  summarise(
+    UN = sum(UN),
+    INGO = sum(INGO),
+    ICRC = sum(ICRC),
+    `NRCS and IFRC` = sum(`NRCS and IFRC`),
+    NNGO = sum(NNGO),
+    Other = sum(Other)
+  ) |>
+  pivot_longer(everything(), names_to = "Organization", values_to = "Incidents")
+
+org_plot <- ggplot(org_totals, aes(x = reorder(Organization, -Incidents), y = Incidents)) +
+  geom_col(
+    aes(
+      text = paste0(
+        "Target: ", Organization, "<br>",
+        "Confirmed Incidents: ", Incidents
+      )
+    ),
+    fill = "#4EA8DE"
+  ) +
+  labs(
+    title = "Organizational Exposure to Security Incidents",
+    x = NULL,
+    y = "Number of Incidents"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1))
+
+ggplotly(org_plot, tooltip = "text") |>
+  layout(
+    margin = list(t = 90)
+  )
+```
+> **Figure 4:** INGOs and NNGOs experience the brunt of violent incidents—suggesting that footprint scale, mission scope, and regional penetration correlate with heightened threat exposure.
+
+## Victim Pathways: Aid Worker Roles and Incident Outcomes
+> Who bears the brunt of violence - international or national staff?
+
+```{r}
+library(networkD3)
+suppressMessages(library(htmlwidgets))
+
+sankey_data <- df |> summarise(
+  `National - Killed` = sum(`Nationals killed`, na.rm = TRUE),
+  `National - Wounded` = sum(`Nationals wounded`, na.rm = TRUE),
+  `National - Kidnapped` = sum(`Nationals kidnapped`, na.rm = TRUE),
+  `International - Killed` = sum(`Internationals killed`, na.rm = TRUE),
+  `International - Wounded` = sum(`Internationals wounded`, na.rm = TRUE),
+  `International - Kidnapped` = sum(`Internationals kidnapped`, na.rm = TRUE)
+) |> pivot_longer(everything(), names_to = "Path", values_to = "Count") |>
+  separate(Path, into = c("Role", "Outcome"), sep = " - ")
+
+nodes <- data.frame(name = unique(c(sankey_data$Role, sankey_data$Outcome)))
+
+links <- sankey_data |> mutate(
+  source = match(Role, nodes$name) - 1,
+  target = match(Outcome, nodes$name) - 1,
+  value = Count
+) |> select(source, target, value)
+
+sankey <- suppressMessages(sankeyNetwork(
+  Links = links,
+  Nodes = nodes,
+  Source = "source",
+  Target = "target",
+  Value = "value",
+  NodeID = "name",
+  fontSize = 13,
+  nodeWidth = 30,
+  colourScale = JS("d3.scaleOrdinal().range(['#4EA8DE', '#FF5C5C', '#F4A261'])"),
+  sinksRight = FALSE
+))
+
+htmlwidgets::onRender(sankey, "
+  function(el) {
+    function applyTheme() {
+      const theme = document.documentElement.getAttribute('data-bs-theme');
+      const color = (theme === 'dark') ? 'white' : 'black';
+      d3.select(el).selectAll('.node text').style('fill', color);
+    }
+
+    // Apply on load
+    applyTheme();
+
+    // Re-apply when theme toggles
+    const observer = new MutationObserver(applyTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+  }
+")
+```
+> **Figure 5:** National staff absorb the overwhelming majority of violence — particularly deaths and injuries — underscoring structural disparities in frontline exposure and security provisioning.
+
+
+## Modus Operandi: Forms of Violence
+What forms of violence are most common?
+```{r, warning=FALSE}
+attack_modes <- df |> count(`Means of attack`, sort = TRUE)
+
+mod_plot <- ggplot(attack_modes, aes(x = n, y = reorder(`Means of attack`, n))) +
+  geom_point(aes(text = paste0("Method: ", `Means of attack`, "<br>Incidents: ", n)),
+             size = 4, color = "#FF5C5C") +
+  labs(
+    title = "Modus Operandi: Attack Types Against Aid Workers",
+    x = "Reported Incidents", y = NULL
+  ) +
+  theme_minimal(base_size = 10)
+
+ggplotly(mod_plot, tooltip = "text") |>
+  layout(
+    margin = list(t = 90)
+  )
+```
+> **Figure 6:** Shootings, kidnappings, and bodily assaults dominate the landscape of violence — requiring field protocols that span both rapid - response and long - duration risk containment.
+
+::: {.callout-warning title="Tactical Implication"}
+Shootings and kidnappings account for the majority of attacks—suggesting field teams need flexible protocols that account for both short-range threats and prolonged abductions.
+:::
+
+## Threat Actor Profile
+Who is behind these attacks?
+```{r, warning=FALSE}
+actor_types <- df |> count(`Actor type`, sort = TRUE)
+
+actor_plot <- ggplot(actor_types, aes(x = n, y = reorder(`Actor type`, n))) +
+  geom_segment(aes(x = 0, xend = n, yend = `Actor type`), color = "#F4A261") +
+  geom_point(aes(text = paste0("Threat Actor: ", `Actor type`, "<br>Incidents: ", n)),
+             size = 4, color = "#F4A261") +
+  labs(
+    title = "Threat Actor Landscape",
+    x = "Confirmed Incidents", y = NULL
+  ) +
+  theme_minimal(base_size = 10)
+
+ggplotly(actor_plot, tooltip = "text") |>
+  layout(
+    margin = list(t = 90)
+  )
+```
+> **Figure 7:** Over **50%** of incidents list the perpetrator as “Unknown,” reflecting both fog-of-war conditions and the limitations of ground - level intelligence gathering in active zones.

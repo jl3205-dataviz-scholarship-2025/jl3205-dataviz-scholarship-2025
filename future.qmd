@@ -1,0 +1,37 @@
+---
+title: From Insight to Action
+author: "jl3205"
+format: 
+  html: 
+    embed-resources: true
+    toc: true
+    code-fold: true
+    theme: darkly
+---
+
+> *"Where digital systems were in place, humanitarian actors gained a decisive edge in crisis response — improving targeting of assistance, coordination across agencies, and adaptive response planning."* @kurpiewska2024digital
+
+## Call to Action 
+We see that data alone cannot protect frontline workers. However, when it is structured, analyzed, and acted upon, it becomes a powerful tool for foresight—helping us predict and prevent devastating attacks before they happen. We must also confront the clear disparity in risk between **national and international staff**, with *national* workers often facing significantly higher exposure. Similarly, the **urban vs. rural threat landscape** reveals distinct operational vulnerabilities, underscoring the importance of context-specific planning and protection strategies.
+
+Overall, this project underscores the critical value of **predictive modeling** and **early warning dashboards** as essential tools for proactive humanitarian security.
+
+## Future Actions & Intelligence Roadmap
+These future actions are made by building on past patterns. This roadmap outlines a practical intelligence roadmap by transforming analysis into actionable protection. 
+
+- **Operational Sandbox**: 
+  - Create an open-data dashboard for NGOs to explore historical incidents, identify emerging clusters, and anticipate future threats.
+  - *Inspired by EDA findings showing persistent spatial and thematic clusters.*
+- **Real-Time Risk Scoring**: 
+  - Use logistic models trained on incident features to evaluate new reports and estimate fatality likelihood in real time. 
+  - *Built on the logistic regression performance shown in this project.*
+- **Geo-Temporal Intelligence Fusion**: 
+  - Merge field data with external streams (e.g., satellite imagery, SMS alerts, social media signals) to enhance situational awareness.
+  - *Inspired by the animated timeline and threat hotspot visualizations in this analysis.*
+
+## Humanitarian Threat Anticipation System
+![](images/mermaid.png)
+
+> **Note:** 
+> 
+>   incident logs + external intel → model → alert → field action.
